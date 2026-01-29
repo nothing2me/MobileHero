@@ -2,6 +2,8 @@
 
 The PC companion app for **MobileHero**, turning your smartphone into a virtual guitar controller for Clone Hero and other rhythm games.
 
+**WE NEED BETA TESTERS!** https://forms.gle/8qv6XRVjwfFsTohA6
+
 ![https://via.placeholder.com/800x400?text=MobileHero+Launcher+Preview](https://i.imgur.com/6f9oFet.png)
 
 ## Features
