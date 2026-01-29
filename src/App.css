@@ -1,0 +1,442 @@
+/* ============================================
+   MobileHero Launcher Theme
+   Inspired by MobileHero App Logic
+   ============================================ */
+
+:root {
+  /* Colors */
+  --bg-dark: #0d0d0d;
+  --bg-panel: #1a1a1a;
+  --bg-panel-light: #252525;
+
+  --fret-green: #00ff66;
+  --fret-red: #ff2244;
+  --fret-yellow: #ffee00;
+  --fret-blue: #00ccff;
+  --fret-orange: #ff8800;
+
+  --text-primary: #ffffff;
+  --text-secondary: #aaaaaa;
+  --text-muted: #666666;
+
+  --accent: #ff8800;
+  --success: #00ff66;
+  --error: #ff3366;
+
+  --border: #333333;
+
+  /* Layout - Compacted for 900x600 fit */
+  --header-height: 60px;
+  --sidebar-width: 260px;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Orbitron', 'Segoe UI', system-ui, sans-serif;
+  background-color: var(--bg-dark);
+  color: var(--text-primary);
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ============================================
+   Layout
+   ============================================ */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1a1a1a 0%, #000000 100%);
+}
+
+.dashboard {
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--sidebar-width) 1fr;
+  gap: 15px;
+  padding: 15px;
+  padding-top: 0;
+  overflow: hidden;
+  min-height: 0;
+}
+
+/* ============================================
+   Components
+   ============================================ */
+
+/* Header */
+.header {
+  height: var(--header-height);
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.8) 0%, transparent 100%);
+  margin-bottom: 15px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand-icon {
+  font-size: 24px;
+  filter: drop-shadow(0 0 10px var(--accent));
+}
+
+.brand-icon-img {
+  width: 40px;
+  height: 40px;
+  margin-right: 8px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 4px var(--accent));
+}
+
+.brand-title {
+  font-size: 20px;
+  font-weight: 900;
+  letter-spacing: 2px;
+  color: var(--text-primary);
+}
+
+.brand-subtitle {
+  font-size: 9px;
+  color: var(--text-muted);
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-top: 2px;
+}
+
+.accent-text {
+  color: var(--accent);
+}
+
+/* Cards */
+.card {
+  background: var(--bg-panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  overflow: hidden;
+}
+
+.card-title {
+  font-size: 12px;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 8px;
+  margin-bottom: 2px;
+}
+
+/* Sidebar Column */
+.sidebar-col {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  overflow-y: auto;
+  /* Allow scrolling if controls overflow */
+  padding-right: 5px;
+  /* Space for scrollbar */
+}
+
+/* Main Column */
+.main-col {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  min-height: 0;
+}
+
+/* Status Card */
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.status-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bg-panel-light);
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+  transition: all 0.3s;
+}
+
+.status-dot.active {
+  background: var(--success);
+  box-shadow: 0 0 15px var(--success);
+}
+
+.status-text {
+  font-size: 14px;
+  font-weight: bold;
+  color: var(--text-secondary);
+}
+
+.status-text.active {
+  color: var(--success);
+  text-shadow: 0 0 10px rgba(0, 255, 102, 0.3);
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 8px;
+  font-family: 'Consolas', monospace;
+  font-size: 12px;
+}
+
+.info-label {
+  color: var(--text-muted);
+}
+
+.info-value {
+  color: var(--fret-blue);
+  text-align: right;
+  font-weight: bold;
+}
+
+/* QR Code */
+.qr-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  background: #fff;
+  border-radius: 6px;
+  align-self: center;
+}
+
+.qr-image {
+  width: 140px;
+  /* Reduced specific size */
+  height: 140px;
+  image-rendering: pixelated;
+}
+
+.qr-hint {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 10px;
+  margin-top: 5px;
+}
+
+/* Controls */
+.control-btn {
+  width: 100%;
+  padding: 12px;
+  /* Compact padding */
+  border: none;
+  border-radius: 6px;
+  font-family: 'Orbitron', sans-serif;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.btn-start {
+  background: var(--success);
+  color: #000;
+  box-shadow: 0 0 10px rgba(0, 255, 102, 0.2);
+}
+
+.btn-start:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 15px rgba(0, 255, 102, 0.4);
+}
+
+.btn-stop {
+  background: var(--error);
+  color: #fff;
+  box-shadow: 0 0 10px rgba(255, 34, 68, 0.2);
+}
+
+.btn-stop:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 0 15px rgba(255, 34, 68, 0.4);
+}
+
+.btn-settings {
+  background: var(--bg-panel-light);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+
+.btn-settings:hover {
+  background: #333;
+  color: #fff;
+}
+
+/* Console */
+.console-card {
+  flex: 1;
+  min-height: 0;
+  background: #000;
+  border: 1px solid #333;
+}
+
+.console-output {
+  height: 100%;
+  overflow-y: auto;
+  font-family: 'Consolas', monospace;
+  font-size: 12px;
+  color: var(--success);
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.log-line {
+  line-height: 1.4;
+  word-break: break-all;
+}
+
+.log-time {
+  color: #666;
+  margin-right: 8px;
+}
+
+.log-w {
+  color: var(--fret-orange);
+}
+
+.log-e {
+  color: var(--error);
+}
+
+.log-i {
+  color: var(--fret-blue);
+}
+
+/* Settings Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: var(--bg-panel);
+  width: 450px;
+  max-height: 85vh;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-header {
+  padding: 15px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h2 {
+  color: var(--accent);
+  font-size: 16px;
+}
+
+.modal-body {
+  padding: 15px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.modal-footer {
+  padding: 15px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.setting-group {
+  background: rgba(0, 0, 0, 0.3);
+  padding: 12px;
+  border-radius: 6px;
+}
+
+.group-title {
+  color: var(--fret-blue);
+  font-size: 11px;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.input-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.input-label {
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.input-field {
+  background: #000;
+  border: 1px solid #444;
+  color: var(--success);
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-family: 'Consolas', monospace;
+  width: 80px;
+  text-align: center;
+}
+
+.input-field:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
