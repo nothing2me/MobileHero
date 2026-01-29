@@ -8,6 +8,27 @@ use tokio::sync::Mutex;
 pub use config::Config;
 pub use websocket::ServerState;
 
+use tauri::Manager; // Need Manager trait for checking app state if needed, but path() is on AppHandle
+
+// Helper to get config path
+fn get_config_path(app: &tauri::AppHandle) -> std::path::PathBuf {
+    // For Tauri v2, we can use:
+    // app.path().app_config_dir() -> Result<PathBuf>
+    
+    // Note: handling unwraps carefully.
+    match app.path().app_config_dir() {
+        Ok(dir) => dir.join("config.json"),
+        Err(_) => {
+            // Fallback to local execution dir if app_config_dir fails (e.g. unexpected environment)
+            std::env::current_exe()
+                .ok()
+                .and_then(|p| p.parent().map(|p| p.to_path_buf()))
+                .unwrap_or_else(|| std::path::PathBuf::from("."))
+                .join("config.json")
+        }
+    }
+}
+
 #[tauri::command]
 async fn start_server(
     state: tauri::State<'_, Arc<Mutex<ServerState>>>,
@@ -19,20 +40,24 @@ async fn start_server(
         return Err("Server already running".to_string());
     }
     
-    let config = config::load_config();
+    let config_path = get_config_path(&app);
+    let config = config::load_config(Some(config_path.clone()));
     let port = config.port;
-    
+
     // Start the WebSocket server in a background task
     let state_clone = Arc::clone(&state.inner());
     let app_clone = app.clone();
     
     tokio::spawn(async move {
+        // We pass the path or handle to run_server?
+        // run_server takes app handle, so it can resolve the path itself inside.
         if let Err(e) = websocket::run_server(state_clone, app_clone, port).await {
             eprintln!("Server error: {}", e);
         }
     });
     
     server.is_running = true;
+    server.should_stop = false; // Reset shutdown flag
     
     // Get local IP
     let ip = local_ip_address::local_ip()
@@ -47,6 +72,10 @@ async fn stop_server(state: tauri::State<'_, Arc<Mutex<ServerState>>>) -> Result
     let mut server = state.lock().await;
     server.is_running = false;
     server.should_stop = true;
+    
+    // Signal all connections to close
+    let _ = server.shutdown_tx.send(());
+    
     Ok(())
 }
 
@@ -58,13 +87,15 @@ fn get_local_ip() -> String {
 }
 
 #[tauri::command]
-fn get_config() -> Config {
-    config::load_config()
+fn get_config(app: tauri::AppHandle) -> Config {
+    let path = get_config_path(&app);
+    config::load_config(Some(path))
 }
 
 #[tauri::command]
-fn save_config(config: Config) -> Result<(), String> {
-    config::save_config(&config).map_err(|e| e.to_string())
+fn save_config(app: tauri::AppHandle, config: Config) -> Result<(), String> {
+    let path = get_config_path(&app);
+    config::save_config(&config, path).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
@@ -105,7 +136,7 @@ pub fn run() {
             save_config,
             generate_qr_code,
         ])
-        .setup(|app| {
+        .setup(|_app| {
             // Initialize the tokio runtime for async operations
             let rt = tokio::runtime::Runtime::new().expect("Failed to create Tokio runtime");
             std::thread::spawn(move || {

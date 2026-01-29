@@ -89,7 +89,9 @@ pub fn press_key(key_name: &str, config: &Config) {
     // Press the key directly without state checking
     match ENIGO.lock() {
         Ok(mut enigo) => {
-            enigo.key(key, enigo::Direction::Press);
+            if let Err(e) = enigo.key(key, enigo::Direction::Press) {
+                println!("[ERROR] Failed to press key: {}", e);
+            }
             // println!("[DOWN] {}: {} -> {:?}", key_name, binding, key);
         }
         Err(e) => println!("[ERROR] Failed to lock ENIGO: {}", e),
@@ -110,7 +112,9 @@ pub fn release_key(key_name: &str, config: &Config) {
     // Release the key directly
     match ENIGO.lock() {
         Ok(mut enigo) => {
-            enigo.key(key, enigo::Direction::Release);
+            if let Err(e) = enigo.key(key, enigo::Direction::Release) {
+                println!("[ERROR] Failed to release key: {}", e);
+            }
             // println!("[UP] {}: {} -> {:?}", key_name, binding, key);
         }
         Err(e) => println!("[ERROR] Failed to lock ENIGO for release: {}", e),

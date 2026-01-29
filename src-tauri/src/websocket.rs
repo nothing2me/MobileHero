@@ -5,23 +5,28 @@ use std::sync::Arc;
 use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::Mutex;
 use tokio_tungstenite::{accept_async, tungstenite::Message};
-use tauri::{AppHandle, Emitter};
+use tauri::{AppHandle, Emitter, Manager};
 
 use crate::config::{self, Config};
 use crate::keyboard;
+
+// ... imports ...
 
 pub struct ServerState {
     pub is_running: bool,
     pub should_stop: bool,
     pub connected_clients: u32,
+    pub shutdown_tx: tokio::sync::broadcast::Sender<()>,
 }
 
 impl ServerState {
     pub fn new() -> Self {
+        let (tx, _rx) = tokio::sync::broadcast::channel(1);
         Self {
             is_running: false,
             should_stop: false,
             connected_clients: 0,
+            shutdown_tx: tx,
         }
     }
 }
@@ -49,6 +54,7 @@ struct ServerResponse {
 }
 
 pub async fn run_server(
+// ...
     state: Arc<Mutex<ServerState>>,
     app: AppHandle,
     port: u16,
@@ -114,7 +120,13 @@ async fn handle_connection(
     println!("{}", msg);
     let _ = app.emit("log", msg);
     
-    let config = config::load_config();
+    // Resolve config path
+    let config_path = match app.path().app_config_dir() {
+        Ok(dir) => dir.join("config.json"),
+        Err(_) => std::path::PathBuf::from("config.json"),
+    };
+    
+    let config = config::load_config(Some(config_path));
     let mut authenticated = false;
     
     // Update client count
@@ -179,22 +191,39 @@ async fn handle_connection(
         return Ok(());
     }
     
+    // Get shutdown receiver
+    let mut shutdown_rx = {
+        let server = state.lock().await;
+        server.shutdown_tx.subscribe()
+    };
+    
     // Main message loop
-    while let Some(msg_result) = read.next().await {
-        match msg_result {
-            Ok(msg) => {
-                if msg.is_close() {
-                    break;
-                }
-                
-                if let Ok(text) = msg.to_text() {
-                    if let Ok(data) = serde_json::from_str::<ClientMessage>(text) {
-                        handle_input(&data, &config, &mut write, &app).await;
+    loop {
+        tokio::select! {
+            msg_result = read.next() => {
+                match msg_result {
+                    Some(Ok(msg)) => {
+                        if msg.is_close() {
+                            break;
+                        }
+                        
+                        if let Ok(text) = msg.to_text() {
+                            if let Ok(data) = serde_json::from_str::<ClientMessage>(text) {
+                                handle_input(&data, &config, &mut write, &app).await;
+                            }
+                        }
+                    }
+                    Some(Err(e)) => {
+                        eprintln!("WebSocket error: {}", e);
+                        break;
+                    }
+                    None => {
+                        break;
                     }
                 }
             }
-            Err(e) => {
-                eprintln!("WebSocket error: {}", e);
+            _ = shutdown_rx.recv() => {
+                println!("Closing connection due to server stop: {}", addr);
                 break;
             }
         }

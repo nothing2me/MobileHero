@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface Config {
     port: number;
@@ -21,6 +21,12 @@ const INSTRUMENTS = {
 
 export default function SettingsModal({ isOpen, onClose, config, onSave }: Props) {
     const [localConfig, setLocalConfig] = useState<Config | null>(config);
+
+    useEffect(() => {
+        if (config) {
+            setLocalConfig(config);
+        }
+    }, [config, isOpen]);
 
     if (!isOpen || !localConfig) return null;
 
